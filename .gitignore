@@ -1,0 +1,25 @@
+#venv
+
+venv/
+PMO_env/
+renv/
+
+#data
+
+data/
+
+#VAE outputs
+
+Validation.csv
+LatentSpaceVAE_3D
+modelsVAE_3D
+
+#R
+
+.RData
+.Rhistory
+.Rprofile
+
+#vscode
+
+.vscode
