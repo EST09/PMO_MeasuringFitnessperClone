@@ -155,8 +155,8 @@ class VAE(keras.Model):
 ## Load the Data and Train the VAE
 '''
 
-encoder = VAE_encoder(300,300,3,3)
-decoder = VAE_decoder(3)
+encoder = VAE_encoder(300,300, 3, 2)
+decoder = VAE_decoder(2)
 vae = VAE(encoder, decoder)
 vae.compile(optimizer=keras.optimizers.Adam())
 
@@ -192,8 +192,6 @@ pickle.dump(z_mean, open(os.path.join(current_directory, '../LatentSpaceVAE_3D/'
 ## Display reconstructed images
 """
 
-decoded_imgs = vae.decoder.predict(x_test)
-print(decoded_imgs.shape)
 
 
 
