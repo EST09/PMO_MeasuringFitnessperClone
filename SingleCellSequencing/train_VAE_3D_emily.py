@@ -9,6 +9,9 @@
 # https://keras.io/examples/generative/vae/
 # https://github.com/keras-team/keras-io/blob/master/examples/generative/vae.py
 # https://learnopencv.com/variational-autoencoder-in-tensorflow/
+# https://towardsdatascience.com/generating-fake-fifa-19-football-players-with-variational-autoencoders-and-tensorflow-aff6c10016ae
+# https://towardsdatascience.com/variational-autoencoders-vaes-for-dummies-step-by-step-tutorial-69e6d1c9d8e9
+# https://casser.io/autoencoder/
 
 
 '''
