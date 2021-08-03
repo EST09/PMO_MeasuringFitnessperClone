@@ -8,6 +8,8 @@
 # https://blog.keras.io/building-autoencoders-in-keras.html
 # https://keras.io/examples/generative/vae/
 # https://github.com/keras-team/keras-io/blob/master/examples/generative/vae.py
+# https://learnopencv.com/variational-autoencoder-in-tensorflow/
+
 
 '''
 ## Dependancies
@@ -39,7 +41,7 @@ from loadData import loadData
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
 home = expanduser("~")
-path2Identities = home + "/smaller_test_imgs" # the file that makes these is miscellaneous.py
+path2Images = home + "/smaller_test_imgs" # the file that makes these is miscellaneous.py
 
 #os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" #not sure what this is
 #os.environ["CUDA_VISIBLE_DEVICES"] = "5" 
@@ -158,85 +160,44 @@ decoder = VAE_decoder(3)
 vae = VAE(encoder, decoder)
 vae.compile(optimizer=keras.optimizers.Adam())
 
-
-Identities = os.listdir(path2Identities)
-
-for f,identity in enumerate(Identities):
-    if os.path.exists(os.path.join(current_directory, '../LatentSpaceVAE_3D',identity+'.pickle')):  
-        continue
-
-    else:
-        print('item {} not exists'.format(identity))
-        path2Images = os.path.join(path2Identities,identity)
         
-        x_train,x_test = loadData(path2Identities,300,300)
+x_train,x_test = loadData(path2Images,300,300)
 
-        x_train = x_train.astype('float32') / 255.
-        x_test = x_test.astype('float32') / 255.
+x_train = x_train.astype('float32') / 255.
+x_test = x_test.astype('float32') / 255.
 
-    datagen = ImageDataGenerator(
-        featurewise_center=False,
-        featurewise_std_normalization=False,
-        rotation_range=90,
-        horizontal_flip=True,
-        vertical_flip=True)
+datagen = ImageDataGenerator(
+    featurewise_center=False,
+    featurewise_std_normalization=False,
+    rotation_range=90,
+    horizontal_flip=True,
+    vertical_flip=True)
 
-    datagen.fit(x_train)
+datagen.fit(x_train)
 
-    print(identity)
-    print('item {} is now running {}'.format(f,identity))
-    
-    print(x_train.shape)
-    print(x_test.shape)
+print(x_train.shape)
+print(x_test.shape)
 
-    if (x_train.shape[0] == 0) or (x_test.shape[0] == 0):
-        continue
-    
-    traingen = datagen.flow(x_train,batch_size=32)
-    
-    history = vae.fit(traingen, epochs=10, shuffle=True, validation_data= (x_test,x_test),callbacks=[ModelCheckpoint(os.path.join(current_directory,'../modelsVAE_3D/',identity+'.h5'), monitor='reconstruction_loss', verbose=1, save_best_only=True,save_weights_only=True)], verbose=2)
+traingen = datagen.flow(x_train,batch_size=32)
 
-    # take a look at the reconstructed digits
-    #decoded_imgs = vae.decoder.predict(x_test)
-    #print(decoded_imgs.shape)
-    '''
-    n = 10
-    plt.figure(figsize=(10, 4), dpi=100)
-    for i in range(n):
-        # display original
-        ax = plt.subplot(2, n, i + 1)
-        plt.imshow(x_test[i].reshape(28, 28))
-        plt.gray()
-        ax.set_axis_off()
+history = vae.fit(traingen, epochs=10, shuffle=True, validation_data= (x_test,x_test),callbacks=[ModelCheckpoint(os.path.join(current_directory,'../modelsVAE_3D/','model.h5'), monitor='reconstruction_loss', verbose=1, save_best_only=True,save_weights_only=True)], verbose=2)
 
-        # display reconstruction
-        ax = plt.subplot(2, n, i + n + 1)
-        plt.imshow(decoded_imgs[i].reshape(28, 28))
-        plt.gray()
-        ax.set_axis_off()
+z_mean, _, _ = vae.encoder.predict(x_test)
+print(z_mean.shape)
 
-    plt.save('reconstruction.png')
-    '''
-    # take a look at the 128-dimensional encoded representation
-    # these representations are 8x4x4, so we reshape them to 4x32 in order to be able to display them as grayscale images
+pickle.dump(z_mean, open(os.path.join(current_directory, '../LatentSpaceVAE_3D/', 'model.pickle'), 'wb'))
 
-    #encoder = Model(input_img, encoded)
-    z_mean, _, _ = vae.encoder.predict(x_test)
-    print(z_mean.shape)
-    
-    pickle.dump(z_mean, open(os.path.join(current_directory, '../LatentSpaceVAE_3D/', identity+'.pickle'), 'wb'))
-    '''
-    n = 10
-    plt.figure(figsize=(10, 4), dpi=100)
-    for i in range(n):
-        ax = plt.subplot(1, n, i + 1)
-        plt.imshow(encoded_imgs[i].reshape(4, 4 * 8).T)
-        plt.gray()
-        ax.set_axis_off()
 
-    plt.savefig('latentSpace.pnd')
-    '''
-    K.clear_session()
+"""
+## Display reconstructed images
+"""
+
+decoded_imgs = vae.decoder.predict(x_test)
+print(decoded_imgs.shape)
+
+
+
+K.clear_session()
 
 
 
