@@ -10,6 +10,7 @@
 # https://github.com/keras-team/keras-io/blob/master/examples/generative/vae.py
 # https://learnopencv.com/variational-autoencoder-in-tensorflow/
 # https://towardsdatascience.com/generating-fake-fifa-19-football-players-with-variational-autoencoders-and-tensorflow-aff6c10016ae
+# https://github.com/mmeendez8/Fifa
 # https://towardsdatascience.com/variational-autoencoders-vaes-for-dummies-step-by-step-tutorial-69e6d1c9d8e9
 # https://casser.io/autoencoder/
 # https://stackabuse.com/autoencoders-for-image-reconstruction-in-python-and-keras
@@ -210,54 +211,67 @@ plt.show()
 ## Display reconstructed images
 """
 
-image = x_test[0]
-print("x_test", x_test[0], x_test[0].shape)
-code = encoder.predict(image[None])
-print("code", code)
-code_t = encoder.predict(image[None])[0]
-print("code_t", code_t)
+# show original and reconstructed image
 
-
-reco_t = decoder.predict(code_t)[0]
-print("reco_t", reco_t)
-
-
-
-
-
-
-
-
-#ValueError: Input 0 is incompatible with layer decoder: expected shape=(None, 2), found shape=(None, 1, 2)
-def visualize(img,encoder,decoder):
-    """Draws original, encoded and decoded images"""
-    # img[None] will have shape of (1, 32, 32, 3) which is the same as the model input
-    print("img_None", img[None].shape)
+# def visualize(img,encoder,decoder):
+#     """Draws original, encoded and decoded images"""
+#     # img[None] will have shape of (1, 32, 32, 3) which is the same as the model input
+#     print("img_None", img[None].shape)
     
-    code = encoder.predict(img[None])[0]
+#     code = encoder.predict(img[None])[0]
     
-    print(code[None].shape)
+#     print(code[None].shape)
 
-    reco = decoder.predict(code)[0]
+#     reco = decoder.predict(code)[0]
 
-    plt.subplot(1,3,1)
-    plt.title("Original")
-    plt.imshow(img)
+#     plt.subplot(1,3,1)
+#     plt.title("Original")
+#     plt.imshow(img)
 
-    plt.subplot(1,3,2)
-    plt.title("Code")
-    plt.imshow(code.reshape([code.shape[-1]//2,-1]))
+#     plt.subplot(1,3,2)
+#     plt.title("Code")
+#     plt.imshow(code.reshape([code.shape[-1]//2,-1]))
 
-    plt.subplot(1,3,3)
-    plt.title("Reconstructed")
-    plt.imshow(reco)
-    plt.show()
+#     plt.subplot(1,3,3)
+#     plt.title("Reconstructed")
+#     plt.imshow(reco)
+#     plt.show()
 
-for i in range(5):
-    img = x_test[i]
-    visualize(img,encoder,decoder)
+# for i in range(5):
+#     img = x_test[i]
+#     visualize(img,encoder,decoder)
 
+#plot latent space
+#need to add labels
 
+# x_test_encoded = encoder.predict(x_test, batch_size=32)
+# plt.figure(figsize=(6, 6))
+# #plot z_mean
+# plt.scatter(x_test_encoded[0][:, 0], x_test_encoded[0][:, 1])
+# plt.show()
+
+#Not working for colour yet
+
+# # Display a 2D manifold of the digits
+# n = 10  # figure with 15x15 digits
+# digit_size = 300
+# figure = np.zeros((digit_size * n, digit_size * n, 3))
+# # We will sample n points within [-15, 15] standard deviations
+# grid_x = np.linspace(0, 10, n)
+# grid_y = np.linspace(0, 10, n)
+
+# for i, yi in enumerate(grid_x):
+#     for j, xi in enumerate(grid_y):
+#         z_sample = np.array([[xi, yi]])
+#         x_decoded = decoder.predict(z_sample)
+#         digit = x_decoded[0].reshape((digit_size, digit_size, 3))
+#         figure[i * digit_size: (i + 1) * digit_size,
+#                j * digit_size: (j + 1) * digit_size, 
+#                :3] = digit
+
+# plt.figure(figsize=(10, 10))
+# plt.imshow(figure)
+# plt.show()
 
 
 K.clear_session()
