@@ -221,9 +221,11 @@ pickle.dump(z_mean, open(os.path.join(current_directory, '../LatentSpaceVAE_3D/'
 
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_total_loss'])
+
 plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
+
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 

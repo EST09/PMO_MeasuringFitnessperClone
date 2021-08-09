@@ -95,7 +95,7 @@ datagen.fit(x_train)
 # print(x_test.shape) # (30, 300, 300, 3)
 
 # returns batches of images when requested
-traingen = datagen.flow(x_train,batch_size=32)
+traingen = datagen.flow(x_train, batch_size=32)
 
 # Question for Saeed: do we need to call fit_generator? 
 # Question for Saeed: do we need to iterate through images or is traingen a collection of batches now?
@@ -253,12 +253,19 @@ class VAE(keras.Model):
             reconstruction_loss = mse(data, reconstruction)
 
             # kl_loss
+            # a measure of how one probability distribution is different from a second
             kl_loss = -0.5 * (1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var))
+            # Question for Saeed: why do we reduce sum and mean?
+            # Computes the mean of elements across dimensions of a tensor.
+            # axis = 1 mean computed horizontally
             kl_loss = tf.reduce_mean(tf.reduce_sum(kl_loss, axis=1))
+        
             # total_loss
             total_loss = reconstruction_loss + kl_loss
 
+        # computes the gradient
         grads = tape.gradient(total_loss, self.trainable_weights)
+        # Ask the optimizer to apply the processed gradients
         self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
         self.total_loss_tracker.update_state(total_loss)
         self.reconstruction_loss_tracker.update_state(reconstruction_loss)
@@ -278,26 +285,68 @@ class VAE(keras.Model):
 encoder = VAE_encoder(300,300, 3, 2)
 decoder = VAE_decoder(2)
 vae = VAE(encoder, decoder)
+
+# Configures the model for training
+# Adam optimization is a stochastic gradient descent method that is 
+# based on adaptive estimation of first-order and second-order moments.
+# default lr = 0.001
 vae.compile(optimizer=keras.optimizers.Adam())
 
-
-history = vae.fit(traingen, epochs=10, shuffle=True, validation_data= (x_test, x_test), callbacks=[ModelCheckpoint(os.path.join(current_directory,'../modelsVAE_3D/','model.h5'), monitor='reconstruction_loss', verbose=1, save_best_only=True, save_weights_only=True)], verbose=2)
+# Trains the model for a fixed number of epochs (iterations on a dataset).
+# verbose is how much you want to see whilst training
+# Callback to save the Keras model or model weights at some frequency.
+# Question for Saeed: won't work if I set save weights only as false? Does this matter?
+history = vae.fit(traingen, epochs=50, shuffle=True, validation_data= (x_test, x_test), callbacks=[ModelCheckpoint(os.path.join(current_directory,'../modelsVAE_3D/','model.h5'), monitor='reconstruction_loss', verbose=1, save_best_only=True, save_weights_only=True)], verbose=2)
 
 z_mean, _, _ = vae.encoder.predict(x_test)
 
+pickle.dump(z_mean, open(os.path.join(current_directory, '../LatentSpaceVAE_3D/', 'model.pickle'), 'wb'))
+
+"""
+## Display loss
+"""
+
+# Test doesn't appear to be doing anything
+# Only train is plotting anything
+# Question for Saeed: I don't really understand why? 
+# Is it because I don't specify validation split?
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_total_loss'])
+
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+
+plt.legend(['train', 'test'], loc='upper left')
+
+plt.show()
 
 # show original and reconstructed image
 
+'''
+# Visualisation
+'''
+
 def visualize(img,encoder,decoder):
     """Draws original, encoded and decoded images"""
-    # img[None] will have shape of (1, 32, 32, 3) which is the same as the model input
-    print("img_None", img[None].shape)
+    # img[None] will have shape of (1, 300, 300, 3) which is the same as the model input
+    print("img", img.shape)
     
+    # reference the first of the batch
+    # encoder.predict expects images in teh form of batches 
+    # even tho here we are doing one image at a time 
+    # hence we much reference the first of None 
+    # where None is the undefined shape of the batch size
     code = encoder.predict(img[None])[0]
     
-    print(code[None].shape)
-
+    print("code", code[None].shape)
+    # Input 0 is incompatible with layer decoder: expected shape=(None, 2), found shape=(None, 1, 2)
+    # Question for Saeed: Do you think I'm referencing the right thing here? 
+    # Not sure why I get None, 1, 2?
     reco = decoder.predict(code)[0]
+
+    print("reco", reco.shape)
 
     plt.subplot(1,3,1)
     plt.title("Original")
@@ -305,6 +354,7 @@ def visualize(img,encoder,decoder):
 
     plt.subplot(1,3,2)
     plt.title("Code")
+    # not really sure what this is doing - probably need to change to make more informative
     plt.imshow(code.reshape([code.shape[-1]//2,-1]))
 
     plt.subplot(1,3,3)
@@ -316,6 +366,47 @@ for i in range(5):
     img = x_test[i]
     visualize(img,encoder,decoder)
 
+#plot latent space
+#need to add labels
+
+# Question for Saeed: I should be plotting the z_mean or z?
+z_mean, _, _ = encoder.predict(x_test)
+plt.figure(figsize=(6, 6))
+
+#plot z_mean
+# Question for Saeed: I don't really understand why I only have 30 means?
+print(z_mean[:, 0])
+plt.scatter(z_mean[:, 0], z_mean[:, 1])
+plt.show()
+
+
+# Display a 2D manifold of the images
+
+n = 10  # figure with 10x10 images
+digit_size = 300
+figure = np.zeros((digit_size * n, digit_size * n, 3))
+# We will sample n points within [10, 10] standard deviations
+grid_x = np.linspace(0, 10, n)
+grid_y = np.linspace(0, 10, n)
+
+for i, yi in enumerate(grid_x):
+    for j, xi in enumerate(grid_y):
+        z_sample = np.array([[xi, yi]])
+        x_decoded = decoder.predict(z_sample)
+        digit = x_decoded[0].reshape((digit_size, digit_size, 3))
+        figure[i * digit_size: (i + 1) * digit_size,
+               j * digit_size: (j + 1) * digit_size, 
+               :3] = digit
+
+plt.figure(figsize=(10, 10))
+plt.imshow(figure)
+plt.show()
+
+
+K.clear_session()
+
+
+#######################################################
 
 # """
 # ## Create a sampling layer
