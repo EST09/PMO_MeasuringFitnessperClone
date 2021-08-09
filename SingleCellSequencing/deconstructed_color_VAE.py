@@ -248,14 +248,9 @@ class VAE(keras.Model):
             #     )
             # )
             # https://keras.io/api/losses/
-
-            mse = tf.keras.losses.MeanSquaredError()
-            
-            reconstruction_loss = tf.reduce_mean(
-                tf.reduce_sum(
-                    keras.losses.binary_crossentropy(data, reconstruction), axis=(1, 2)
-                )
-            )
+            # Question for Saeed: can I do this? How do I learn more about this?
+            mse = tf.keras.losses.MeanSquaredError()        
+            reconstruction_loss = mse(data, reconstruction)
 
             # kl_loss
             kl_loss = -0.5 * (1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var))
@@ -289,6 +284,37 @@ vae.compile(optimizer=keras.optimizers.Adam())
 history = vae.fit(traingen, epochs=10, shuffle=True, validation_data= (x_test, x_test), callbacks=[ModelCheckpoint(os.path.join(current_directory,'../modelsVAE_3D/','model.h5'), monitor='reconstruction_loss', verbose=1, save_best_only=True, save_weights_only=True)], verbose=2)
 
 z_mean, _, _ = vae.encoder.predict(x_test)
+
+
+# show original and reconstructed image
+
+def visualize(img,encoder,decoder):
+    """Draws original, encoded and decoded images"""
+    # img[None] will have shape of (1, 32, 32, 3) which is the same as the model input
+    print("img_None", img[None].shape)
+    
+    code = encoder.predict(img[None])[0]
+    
+    print(code[None].shape)
+
+    reco = decoder.predict(code)[0]
+
+    plt.subplot(1,3,1)
+    plt.title("Original")
+    plt.imshow(img)
+
+    plt.subplot(1,3,2)
+    plt.title("Code")
+    plt.imshow(code.reshape([code.shape[-1]//2,-1]))
+
+    plt.subplot(1,3,3)
+    plt.title("Reconstructed")
+    plt.imshow(reco)
+    plt.show()
+
+for i in range(5):
+    img = x_test[i]
+    visualize(img,encoder,decoder)
 
 
 # """
