@@ -127,7 +127,7 @@ class Sampling(layers.Layer):
         # input is rest of encoder layers
         z_mean, z_log_var = inputs
         # tf.shape returns a tensor containing the shape of the input tensor
-        # Question for saeed: are we just getting the batch (1) and dimension (3) of z_mean? Need to look a bit more into tensors.
+        
         batch = tf.shape(z_mean)[0]  # batch 32     
         dim = tf.shape(z_mean)[1] # dim 2
         
@@ -135,7 +135,6 @@ class Sampling(layers.Layer):
         # tensor with normal distribution of values
         epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
         
-        # Question for Saeed: what is this doing?
         # https://stats.stackexchange.com/questions/486158/reparameterization-trick-in-vaes-how-should-we-do-this 
         # constaining to positive numbers
         # var^0.5 = sd (so (z = mu + eps * sd) == (z = mu + eps * exp(0.5log(var))))
@@ -296,7 +295,7 @@ vae.compile(optimizer=keras.optimizers.Adam())
 # verbose is how much you want to see whilst training
 # Callback to save the Keras model or model weights at some frequency.
 # Question for Saeed: won't work if I set save weights only as false? Does this matter?
-history = vae.fit(traingen, epochs=50, shuffle=True, validation_data= (x_test, x_test), callbacks=[ModelCheckpoint(os.path.join(current_directory,'../modelsVAE_3D/','model.h5'), monitor='reconstruction_loss', verbose=1, save_best_only=True, save_weights_only=True)], verbose=2)
+history = vae.fit(traingen, epochs=100, shuffle=True, validation_data= (x_test, x_test), callbacks=[ModelCheckpoint(os.path.join(current_directory,'../modelsVAE_3D/','model.h5'), monitor='reconstruction_loss', verbose=1, save_best_only=True, save_weights_only=True)], verbose=2)
 
 z_mean, _, _ = vae.encoder.predict(x_test)
 
@@ -369,7 +368,7 @@ for i in range(5):
 #plot latent space
 #need to add labels
 
-# Question for Saeed: I should be plotting the z_mean or z?
+
 z_mean, _, _ = encoder.predict(x_test)
 plt.figure(figsize=(6, 6))
 
