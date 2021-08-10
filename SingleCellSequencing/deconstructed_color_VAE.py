@@ -1,4 +1,9 @@
-# Taking Saeed's code and converting it to make it more intuitive and commented 
+'''
+## Description
+
+'''
+
+# Commenting Saeed's code and keeping important parts
 # Making it run on a clone by clone basis
 
 '''
