@@ -7,7 +7,7 @@
 #       - SNU-668 is contained within CloneID
 # 4. Move forward working with the 9th subpopulation, create a file and quantify pathway expression based on GSVA (pq)
 #       - where colnames are the 430 cells in the subpop
-#       - rownames gives 1116 pathways (I think from running cloneid?) 
+#       - rownames gives 116 pathways (I think from running cloneid?) 
 #       - getSubProfiles gets copy number and expression profile of each cell
 #       - GSVA compares to all cells and within cell: https://doi.org/10.1186/1471-2105-14-7
 # 5. Get the cell cycle State for each cell

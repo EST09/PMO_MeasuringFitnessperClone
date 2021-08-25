@@ -28,4 +28,3 @@ def loadData(path2Images,w,h):
     df['Validation'] = imageNames[:x]
     df.to_csv('Validation.csv',index=False)
     return train,val
-
