@@ -3,7 +3,7 @@
 venv/
 PMO_env/
 renv/
-__pycache__
+__pycache__/
 
 #data
 
