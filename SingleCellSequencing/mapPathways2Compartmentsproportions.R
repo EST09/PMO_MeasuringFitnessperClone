@@ -2,31 +2,6 @@
 
 # Attempt 1: Pathways as a proportion of a subcompartment according to expression - different colours for different pathways
 
-### Workflow ###
-
-# 1. Get compartment coordinates from allen cell segmentation - combine organelle coordinates together into coords
-# 2. Create a placeholder image
-# 3. Run cloneid on SNU-668 cell line to get subpopulations
-#       - CloneID is a database. Can learn more here: 10.1093/nargab/lqaa016
-#       - SNU-668 is contained within CloneID
-# 4. Move forward working with the 9th subpopulation, create a file and quantify pathway expression based on GSVA (pq)
-#       - where colnames are the 430 cells in the subpop
-#       - rownames gives 116 pathways (I think from running cloneid?) 
-#       - getSubProfiles gets copy number and expression profile of each cell
-#       - GSVA compares to all cells and within cell: https://doi.org/10.1186/1471-2105-14-7
-# 5. Get the cell cycle State for each cell
-# 6. Create a pathtolocmap - take NCBI file and generalise to Allen cell compartments
-#       - we preprocessed the NCBI file from Reactome to ensure that locations are more standardised
-# 7. From pathtolocmap create a list of unique pathway names - lpp (656 pathways)
-#       - This different from the 1116 pathways in the 9th subpopulation (pq) as we are only considering mito and nucleus 
-# 8. For each cell in 9th subpop, for each pathway in lpp find how many compartemnts it appears in in path2locmap
-#       - We should be dividing by 2 if in 2 compartments, by 3 if 3 compartments (naive approach as not necessarily evenly distributed)
-# 9. Get indices which are in pathway location e.g. nucleus
-# 10. Sample the same number of coordinates as that pathways expression e.g. for RNA polymerase, expr=16096, sample 16096 coordinates
-#       - Same as pathway expression? We should explore alternatives to this to make visualisation easier.
-# 11. Because we allow resampling record how many times a coord has been sampled - append to the coord like table from allen cell
-# 12. Create an image using these Coordinates
-
 ### Script ###
 
 options(java.parameters = "-Xmx7g")
@@ -49,8 +24,6 @@ library(stringr)
 library(scales)
 library(rgl)
 
-#r3dDefaults$windowRect=c(0,50, 800, 800) 
-
 #custom packages
 devtools::source_url("https://github.com/noemiandor/Utils/blob/master/Pathways/getGenesInvolvedIn.R?raw=TRUE")
 devtools::source_url("https://github.com/noemiandor/Utils/blob/master/Pathways/getAllPathways.R?raw=TRUE")
@@ -63,17 +36,6 @@ source("alignPathways2Compartments.R")
 
 ## Get templates and set paths ##
 
-# https://reactome.org/what-is-reactome
-# indicates which external protein, gene or small molecule identifiers in the source database were mapped to Reactome pathway and reaction annotations
-# Columns are: 
-# 1. Source database identifier: NCBI Gene ID
-# 2. Reactome Pathway Stable identifier
-# Extra column for common name
-# Extra column for URL ending
-# 3. URL
-# 4. Event (Pathway or Reaction) Name
-# 5. Evidence Code
-# 6. Species
 pathwayMapFile = "NCBI2Reactome_PE_All_Levels_sapiens.txt"
 CELLLINE="SNU-668"
 ROOTD = tools::file_path_as_absolute("../data")
@@ -95,51 +57,15 @@ rgl::movie3d(
 )
 rgl.close()
 
-## Expression profiles of all detected genes for clone 9 in the cell line.
 
-# CLONEID is a framework that integrates measurements obtained from different technologies, 
-# or from multi-spatial or longitudinal biopsies, into a comprehensive approximation of the identities of coexisting tumor clones. 
-# The framework comes with a SQL database that keeps track of clones over multiple spatially or temporally connected sequencing experiments.
-# The database also links these high-throughput measurements to the growth conditions of cells from which they were obtained. 
-# A main goal of CLONEID is to facilitate tracking the pedigree of evolving cell lines over decades along with potentially changing 
-# cell culture habits.
-# This can reveal long-term trends in the clonal evolution of cell lines, that would have remained elusive at smaller time-scales.
-
-# clone 9: not sure what that is? 
-cID = 9
-
-# getSubclones: display subclones of a clone 
-# Need to ask how cloneid works exactly
-# clones = cloneid::getSubclones(CELLLINE, whichP="TranscriptomePerspective")
-# pqFile = paste0(OUTD,filesep,names(clones)[cID],".RObj")
+pqFile = "../data/Clone_0.0878689_ID102953.RObj"
 
 load(pqFile) #Clone_0.0878689_ID102953 saved as Robj
-
-# if(file.exists(pqFile)){
-#   load(pqFile)
-
-# }else{
-#   p = getSubProfiles(as.numeric(cloneid::extractID(names(clones)[cID])))
-#   # Exclude copy number profile (keep only expression profile)
-#   require(DBI)
-#   ex = p[-grep(":", rownames(p)),]
-#   # Now let\'s quantify pathway expression based on this expression
-#   gs=getAllPathways(include_genes=T, loadPresaved = T);     
-#   gs=gs[sapply(gs, length)>=5]
-#   pq <- gsva(ex, gs, kcdf="Poisson", mx.diff=T, verbose=FALSE, parallel.sz=2, min.sz=10)
-#   pq <- rescale(pq, to = c(0,30000))
-#   save(pq, file=paste0(OUTD,filesep,names(clones)[cID],".RObj"))
-# }
-
-#colnames(pq) gives the subclones of that clone? - presumably of clone 9
-#getState gets the cell cycle state
-ccState = sapply(colnames(pqFile), function(x) cloneid::getState(x, whichP = "TranscriptomePerspective"))
-
 
 # ## Pathway information:
 
 # #PathwayMap File is the NCBI file - prettifying
-# path2locmap<-read.table(pathwayMapFile, header = FALSE, sep = "\t", dec = ".", comment.char="", quote="", check.names = F, stringsAsFactors = F)
+path2locmap<-read.table(pathwayMapFile, header = FALSE, sep = "\t", dec = ".", comment.char="", quote="", check.names = F, stringsAsFactors = F)
 
 # # Here we replace all compartment names in the path2locmap with their counterpart in coords column names
 # path2locmap$V3 <- sapply(strsplit(path2locmap$V3, "[", fixed=TRUE), function(x) (x)[2])
@@ -163,7 +89,6 @@ ccState = sapply(colnames(pqFile), function(x) cloneid::getState(x, whichP = "Tr
 # save(file='~/Downloads/tmp_coord.RObj', list=c('coord','OUTD', 'lpp','pq','path2locmap')) #what's this doing?
 
 # ## Calculate 3D pathway activity maps
-
 
 # LOI=c("nucleus","mitochondrion")
 # # so are the clones individual cells - that would make sense
