@@ -23,6 +23,10 @@ import umap
 from bokeh.plotting import figure, show, output_notebook
 from bokeh.models import HoverTool, ColumnDataSource, CategoricalColorMapper
 from bokeh.palettes import Spectral10
+from bokeh.plotting import figure
+from bokeh.resources import CDN
+from bokeh.embed import file_html
+
 
 output_notebook()
 
@@ -625,7 +629,7 @@ class UMAP_Maker(Slice_Maker):
         return 'data:image/png;base64,' + base64.b64encode(for_encoding).decode()
     
     
-    def plot_interactive_umap(self, create_images=False):
+    def plot_interactive_umap(self, create_images=False, save_plot=False):
         '''
         Create interactive umap embedding.
         Each point reveals corresponding 3D visaulisation of data it was created from.
@@ -666,16 +670,30 @@ class UMAP_Maker(Slice_Maker):
         </div>
         """))
 
-        plot_figure.circle(
-            'x',
-            'y',
-            source=datasource,
-            # color=dict(field='digit', transform=color_mapping),
-            line_alpha=0.6,
-            fill_alpha=0.6,
-            size=4
-        )
-        show(plot_figure)
+        if save_plot == True:
+            p = plot_figure.circle(
+                'x',
+                'y',
+                source=datasource,
+                # color=dict(field='digit', transform=color_mapping),
+                line_alpha=0.6,
+                fill_alpha=0.6,
+                size=4)
+
+            f = open("umap.html", "w")
+            f.write(file_html(p, CDN, "my plot"))
+            f.close()
+        
+        else:
+            plot_figure.circle(
+                'x',
+                'y',
+                source=datasource,
+                # color=dict(field='digit', transform=color_mapping),
+                line_alpha=0.6,
+                fill_alpha=0.6,
+                size=4)
+            show(plot_figure)
 
 
 '''
