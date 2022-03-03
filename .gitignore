@@ -11,7 +11,8 @@ renv.lock
 Cell_Cycle/I05_multiOrganelles_Linked/
 Cell_Cycle/__pycache__/
 Cell_Cycle/3D_images/
-PMO_envs
+Cell_Cycle/Julia_PH.ipynb
+PMO_env
 
 #IDE
 .vscode
