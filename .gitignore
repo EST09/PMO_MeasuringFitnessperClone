@@ -3,10 +3,15 @@
 .RData
 .Rhistory
 renv/
+.Rprofile
+renv.lock
 
 # Python
 
 Cell_Cycle/I05_multiOrganelles_Linked/
 Cell_Cycle/__pycache__/
 Cell_Cycle/3D_images/
-PMO_env/s
+PMO_envs
+
+#IDE
+.vscode
